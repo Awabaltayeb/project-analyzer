@@ -344,19 +344,28 @@ def admin_logout():
     return redirect('/')
 @app.route('/reset-db')
 def reset_db():
-    """حذف قاعدة البيانات وإعادة إنشائها"""
+    """تفريغ جميع الجداول"""
     try:
-        os.remove('projects.db')
-        setup_db()
-        # حذف مجلد uploads أيضًا
+        conn = sqlite3.connect('projects.db')
+        c = conn.cursor()
+        
+        # تفريغ الجداول
+        c.execute("DELETE FROM files")
+        c.execute("DELETE FROM projects")
+        # لا تحذف جدول admin حتى لا تفقد بيانات الدخول
+        
+        conn.commit()
+        conn.close()
+        
+        # حذف مجلد uploads
         import shutil
         if os.path.exists('uploads'):
             shutil.rmtree('uploads')
         os.makedirs('uploads', exist_ok=True)
-        return "✅ تم حذف قاعدة البيانات ومجلد uploads بنجاح! يمكنك الآن إغلاق هذه الصفحة."
+        
+        return "✅ تم تفريغ جميع المشاريع والملفات بنجاح!"
     except Exception as e:
         return f"❌ خطأ: {str(e)}"
-
 # ========== تشغيل ==========
 if __name__ == '__main__':
     setup_db()
