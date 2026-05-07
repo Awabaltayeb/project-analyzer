@@ -37,7 +37,7 @@ STUDENT_PAGE = '''
             <input type="text" name="team_name" placeholder="اسم الفريق" required>
             <input type="text" name="members" placeholder="أسماء الأعضاء (مفصولة بفاصلة)" required>
             <input type="text" name="project_title" placeholder="عنوان المشروع" required>
-            <label style="display:block; text-align:right; margin-top:10px; color:#555;">📎 ملفات المشروع (PDF, Word, ZIP):</label>
+            <label style="display:block; text-align:right; margin-top:10px; color:#555;">📎 ملفات المشروع (PDF, Word, ZIP, Python):</label>
             <input type="file" name="files" multiple required style="border:none; padding:10px 0;">
             <button type="submit">🚀 تسليم المشروع</button>
         </form>
@@ -172,7 +172,7 @@ REPORT_PAGE = '''
             <p>🐍 ملفات Python: <span class="stat">{{ report.python_files }}</span></p>
             <p>📝 إجمالي الأسطر: <span class="stat">{{ report.total_lines }}</span></p>
             <p>⚙️ الدوال: <span class="stat">{{ report.total_functions }}</span></p>
-            <p>🏗    الكلاسات: <span class="stat">{{ report.total_classes }}</span></p>
+            <p>🏗️ الكلاسات: <span class="stat">{{ report.total_classes }}</span></p>
             <p>📄 صفحات PDF: <span class="stat">{{ report.pdf_pages }}</span></p>
             <p>📃 فقرات Word: <span class="stat">{{ report.docx_paragraphs }}</span></p>
         </div>
@@ -253,6 +253,7 @@ def student_upload():
 
     return render_template_string(STUDENT_PAGE, success=success)
 
+
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     error = None
@@ -274,6 +275,7 @@ def admin_login():
 
     return render_template_string(ADMIN_LOGIN, error=error)
 
+
 @app.route('/admin/dashboard')
 def admin_dashboard():
     if not session.get('admin_logged_in'):
@@ -286,6 +288,7 @@ def admin_dashboard():
     conn.close()
 
     return render_template_string(ADMIN_DASHBOARD, projects=projects)
+
 
 @app.route('/admin/report/<int:project_id>')
 def admin_report(project_id):
@@ -300,13 +303,15 @@ def admin_report(project_id):
     
     return render_template_string(REPORT_PAGE, report=report)
 
+
 @app.route('/admin/logout')
 def admin_logout():
     session.pop('admin_logged_in', None)
     return redirect('/')
 
+
 # ========== تشغيل ==========
 if __name__ == '__main__':
     setup_db()
     os.makedirs('uploads', exist_ok=True)
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
