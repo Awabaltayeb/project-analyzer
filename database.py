@@ -1,7 +1,11 @@
 import sqlite3
+import os
 
 def setup_db():
-    conn = sqlite3.connect('projects.db')
+    # التأكد من وجود مجلد للقاعدة
+    db_path = 'projects.db'
+    
+    conn = sqlite3.connect(db_path)
     c = conn.cursor()
 
     # جدول المشاريع
@@ -27,9 +31,9 @@ def setup_db():
                   username TEXT UNIQUE NOT NULL,
                   password TEXT NOT NULL)''')
 
-    # إضافة دكتور افتراضي
+    # إضافة دكتور افتراضي (إذا لم يكن موجودًا)
     c.execute("INSERT OR IGNORE INTO admin (username, password) VALUES (?, ?)",
-          ('college', 'college2026'))
+              ('college', 'college2026'))
 
     conn.commit()
     conn.close()
