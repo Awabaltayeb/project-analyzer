@@ -44,7 +44,8 @@ STUDENT_PAGE = '''
 <html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>تسليم مشروع التخرج</title>
+    <title> Systems Analysis and Design Course </title>
+    <title>تسليم المشروع النهائي</title>
     <style>
         body { font-family: Arial, sans-serif; background: #f0f4f8; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .container { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 450px; text-align: center; }
@@ -61,7 +62,7 @@ STUDENT_PAGE = '''
 </head>
 <body>
     <div class="container">
-        <h2>📤 تسليم مشروع التخرج</h2>
+        <h2> تسليم المشروع </h2>
         <p>أدخل بيانات الفريق وارفع ملفات المشروع</p>
         {% if success %}
             <p class="success">✅ تم استلام المشروع بنجاح!</p>
@@ -75,9 +76,9 @@ STUDENT_PAGE = '''
             <input type="text" name="project_title" placeholder="عنوان المشروع" required>
             <label style="display:block; text-align:right; margin-top:10px; color:#555;">📎 ملفات المشروع:</label>
             <input type="file" name="files" multiple required style="border:none; padding:10px 0;">
-            <button type="submit">🚀 تسليم المشروع</button>
+            <button type="submit"> تسليم المشروع</button>
         </form>
-        <a href="/admin/login" class="admin-link">🔐 دخول الدكتور</a>
+        <a href="/admin/login" class="admin-link"> دخول الدكتور</a>
     </div>
 </body>
 </html>
@@ -103,7 +104,7 @@ ADMIN_LOGIN = '''
 </head>
 <body>
     <div class="container">
-        <h2>🔐 دخول الدكتور</h2>
+        <h2> دخول الدكتور</h2>
         {% if error %}
             <p class="error">{{ error }}</p>
         {% endif %}
@@ -112,7 +113,7 @@ ADMIN_LOGIN = '''
             <input type="password" name="password" placeholder="كلمة المرور" required>
             <button type="submit">دخول</button>
         </form>
-        <a href="/" class="back-link">⬅️ العودة للرئيسية</a>
+        <a href="/" class="back-link"> العودة للرئيسية</a>
     </div>
 </body>
 </html>
@@ -141,8 +142,8 @@ ADMIN_DASHBOARD = '''
 </head>
 <body>
     <div class="container">
-        <a href="/admin/logout" class="logout">🚪 خروج</a>
-        <h2>📊 المشاريع المستلمة</h2>
+        <a href="/admin/logout" class="logout"> خروج</a>
+        <h2> المشاريع المستلمة</h2>
         {% if projects %}
         <table>
             <tr><th>#</th><th>الفريق</th><th>المشروع</th><th>الحالة</th><th>تقرير</th></tr>
@@ -152,12 +153,12 @@ ADMIN_DASHBOARD = '''
                 <td>{{ p[1] }}</td>
                 <td>{{ p[3] }}</td>
                 <td>{{ p[4] }}</td>
-                <td><a href="/admin/report/{{ p[0] }}" class="btn">📋 عرض</a></td>
+                <td><a href="/admin/report/{{ p[0] }}" class="btn"> عرض</a></td>
             </tr>
             {% endfor %}
         </table>
         {% else %}
-        <p class="empty">📭 لا توجد مشاريع مستلمة بعد.</p>
+        <p class="empty"> لا توجد مشاريع مستلمة بعد.</p>
         {% endif %}
     </div>
 </body>
@@ -189,25 +190,25 @@ REPORT_PAGE = '''
 <body>
     <div class="container">
         <a href="/admin/dashboard" class="back-btn">⬅️ العودة للوحة التحكم</a>
-        <h2>📋 تقرير المشروع</h2>
+        <h2> تقرير المشروع</h2>
         <div class="section">
-            <h3>📌 معلومات أساسية</h3>
+            <h3> معلومات أساسية</h3>
             <p><strong>الفريق:</strong> {{ report.project[1] }}</p>
             <p><strong>الأعضاء:</strong> {{ report.project[2] }}</p>
             <p><strong>عنوان المشروع:</strong> {{ report.project[3] }}</p>
             <p><strong>تاريخ التسليم:</strong> {{ report.project[5] }}</p>
         </div>
         <div class="section">
-            <h3>📊 إحصائيات الكود</h3>
-            <p>🐍 ملفات Python: <strong>{{ report.python_files }}</strong></p>
-            <p>📝 إجمالي الأسطر: <strong>{{ report.total_lines }}</strong></p>
-            <p>⚙️ الدوال: <strong>{{ report.total_functions }}</strong></p>
-            <p>🏗️ الكلاسات: <strong>{{ report.total_classes }}</strong></p>
-            <p>📄 صفحات PDF: <strong>{{ report.pdf_pages }}</strong></p>
-            <p>📃 فقرات Word: <strong>{{ report.docx_paragraphs }}</strong></p>
+            <h3> إحصائيات الكود</h3>
+            <p> ملفات Python: <strong>{{ report.python_files }}</strong></p>
+            <p> إجمالي الأسطر: <strong>{{ report.total_lines }}</strong></p>
+            <p> الدوال: <strong>{{ report.total_functions }}</strong></p>
+            <p> الكلاسات: <strong>{{ report.total_classes }}</strong></p>
+            <p> صفحات PDF: <strong>{{ report.pdf_pages }}</strong></p>
+            <p> فقرات Word: <strong>{{ report.docx_paragraphs }}</strong></p>
         </div>
         <div class="section">
-            <h3>🧩 أهم الدوال</h3>
+            <h3> أهم الدوال</h3>
             {% if report.all_functions %}
                 {% for func in report.all_functions %}
                     <span class="badge green">{{ func }}</span>
@@ -217,7 +218,7 @@ REPORT_PAGE = '''
             {% endif %}
         </div>
         <div class="section">
-            <h3>🏗️ أهم الكلاسات</h3>
+            <h3> أهم الكلاسات</h3>
             {% if report.all_classes %}
                 {% for cls in report.all_classes %}
                     <span class="badge yellow">{{ cls }}</span>
@@ -227,7 +228,7 @@ REPORT_PAGE = '''
             {% endif %}
         </div>
         <div class="section">
-            <h3>📈 نسبة الجاهزية: 
+            <h3> نسبة الجاهزية: 
                 {% if report.readiness >= 80 %}
                     <span class="badge green">{{ report.readiness }}% - جاهز للمناقشة</span>
                 {% elif report.readiness >= 50 %}
@@ -238,7 +239,7 @@ REPORT_PAGE = '''
             </h3>
         </div>
         <div class="question">
-            <strong>💡 سؤال مقترح للمناقشة:</strong>
+            <strong> سؤال مقترح للمناقشة:</strong>
             <p>{{ report.suggested_question }}</p>
         </div>
     </div>
