@@ -1,10 +1,42 @@
 import os
-from flask import Flask, render_template_string, request, redirect, session
-from database import setup_db
 import sqlite3
+from datetime import datetime
+from flask import Flask, render_template_string, request, redirect, session
 
 app = Flask(__name__)
 app.secret_key = 'super_secret_key_2024'
+
+# ========== إنشاء قاعدة البيانات ==========
+def setup_db():
+    conn = sqlite3.connect('projects.db')
+    c = conn.cursor()
+
+    c.execute('''CREATE TABLE IF NOT EXISTS projects
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  team_name TEXT NOT NULL,
+                  members TEXT NOT NULL,
+                  project_title TEXT NOT NULL,
+                  status TEXT DEFAULT 'تم الاستلام',
+                  submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+
+    c.execute('''CREATE TABLE IF NOT EXISTS files
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  project_id INTEGER,
+                  file_name TEXT NOT NULL,
+                  file_path TEXT NOT NULL,
+                  FOREIGN KEY(project_id) REFERENCES projects(id))''')
+
+    c.execute('''CREATE TABLE IF NOT EXISTS admin
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  username TEXT UNIQUE NOT NULL,
+                  password TEXT NOT NULL)''')
+
+    c.execute("INSERT OR IGNORE INTO admin (username, password) VALUES (?, ?)",
+              ('college', 'college2026'))
+
+    conn.commit()
+    conn.close()
+    print("✅ قاعدة البيانات جاهزة!")
 
 # ========== واجهة رفع الطالب ==========
 STUDENT_PAGE = '''
@@ -22,6 +54,7 @@ STUDENT_PAGE = '''
         button { background: #1a73e8; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 10px; }
         button:hover { background: #1557b0; }
         .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
         .admin-link { display: block; margin-top: 20px; color: #999; font-size: 13px; text-decoration: none; }
         .admin-link:hover { text-decoration: underline; }
     </style>
@@ -33,11 +66,14 @@ STUDENT_PAGE = '''
         {% if success %}
             <p class="success">✅ تم استلام المشروع بنجاح!</p>
         {% endif %}
+        {% if error %}
+            <p class="error">❌ {{ error }}</p>
+        {% endif %}
         <form method="POST" enctype="multipart/form-data">
             <input type="text" name="team_name" placeholder="اسم الفريق" required>
             <input type="text" name="members" placeholder="أسماء الأعضاء (مفصولة بفاصلة)" required>
             <input type="text" name="project_title" placeholder="عنوان المشروع" required>
-            <label style="display:block; text-align:right; margin-top:10px; color:#555;">📎 ملفات المشروع (PDF, Word, ZIP, Python):</label>
+            <label style="display:block; text-align:right; margin-top:10px; color:#555;">📎 ملفات المشروع:</label>
             <input type="file" name="files" multiple required style="border:none; padding:10px 0;">
             <button type="submit">🚀 تسليم المشروع</button>
         </form>
@@ -145,10 +181,6 @@ REPORT_PAGE = '''
         .green { background: #d4edda; color: #155724; }
         .yellow { background: #fff3cd; color: #856404; }
         .red { background: #f8d7da; color: #721c24; }
-        .stat { font-weight: bold; color: #1a73e8; }
-        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
-        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: center; }
-        th { background: #f1f1f1; }
         .question { background: #e8f0fe; padding: 15px; border-radius: 10px; border-right: 4px solid #1a73e8; margin: 15px 0; }
         .back-btn { display: inline-block; background: #666; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; margin-top: 20px; }
         .back-btn:hover { background: #444; }
@@ -158,7 +190,6 @@ REPORT_PAGE = '''
     <div class="container">
         <a href="/admin/dashboard" class="back-btn">⬅️ العودة للوحة التحكم</a>
         <h2>📋 تقرير المشروع</h2>
-
         <div class="section">
             <h3>📌 معلومات أساسية</h3>
             <p><strong>الفريق:</strong> {{ report.project[1] }}</p>
@@ -166,17 +197,15 @@ REPORT_PAGE = '''
             <p><strong>عنوان المشروع:</strong> {{ report.project[3] }}</p>
             <p><strong>تاريخ التسليم:</strong> {{ report.project[5] }}</p>
         </div>
-
         <div class="section">
             <h3>📊 إحصائيات الكود</h3>
-            <p>🐍 ملفات Python: <span class="stat">{{ report.python_files }}</span></p>
-            <p>📝 إجمالي الأسطر: <span class="stat">{{ report.total_lines }}</span></p>
-            <p>⚙️ الدوال: <span class="stat">{{ report.total_functions }}</span></p>
-            <p>🏗️ الكلاسات: <span class="stat">{{ report.total_classes }}</span></p>
-            <p>📄 صفحات PDF: <span class="stat">{{ report.pdf_pages }}</span></p>
-            <p>📃 فقرات Word: <span class="stat">{{ report.docx_paragraphs }}</span></p>
+            <p>🐍 ملفات Python: <strong>{{ report.python_files }}</strong></p>
+            <p>📝 إجمالي الأسطر: <strong>{{ report.total_lines }}</strong></p>
+            <p>⚙️ الدوال: <strong>{{ report.total_functions }}</strong></p>
+            <p>🏗️ الكلاسات: <strong>{{ report.total_classes }}</strong></p>
+            <p>📄 صفحات PDF: <strong>{{ report.pdf_pages }}</strong></p>
+            <p>📃 فقرات Word: <strong>{{ report.docx_paragraphs }}</strong></p>
         </div>
-
         <div class="section">
             <h3>🧩 أهم الدوال</h3>
             {% if report.all_functions %}
@@ -187,7 +216,6 @@ REPORT_PAGE = '''
                 <p style="color:#999;">لا توجد دوال</p>
             {% endif %}
         </div>
-
         <div class="section">
             <h3>🏗️ أهم الكلاسات</h3>
             {% if report.all_classes %}
@@ -198,7 +226,6 @@ REPORT_PAGE = '''
                 <p style="color:#999;">لا توجد كلاسات</p>
             {% endif %}
         </div>
-
         <div class="section">
             <h3>📈 نسبة الجاهزية: 
                 {% if report.readiness >= 80 %}
@@ -210,7 +237,6 @@ REPORT_PAGE = '''
                 {% endif %}
             </h3>
         </div>
-
         <div class="question">
             <strong>💡 سؤال مقترح للمناقشة:</strong>
             <p>{{ report.suggested_question }}</p>
@@ -220,38 +246,45 @@ REPORT_PAGE = '''
 </html>
 '''
 
-# ========== المسارات (Routes) ==========
+# ========== المسارات ==========
 
 @app.route('/', methods=['GET', 'POST'])
 def student_upload():
     success = False
+    error = None
     if request.method == 'POST':
-        team_name = request.form['team_name']
-        members = request.form['members']
-        project_title = request.form['project_title']
-        files = request.files.getlist('files')
+        try:
+            team_name = request.form['team_name']
+            members = request.form['members']
+            project_title = request.form['project_title']
+            files = request.files.getlist('files')
 
-        conn = sqlite3.connect('projects.db')
-        c = conn.cursor()
-        c.execute("INSERT INTO projects (team_name, members, project_title) VALUES (?, ?, ?)",
-                  (team_name, members, project_title))
-        project_id = c.lastrowid
+            if not files or len(files) == 0:
+                error = "لم يتم اختيار أي ملف."
+            else:
+                conn = sqlite3.connect('projects.db')
+                c = conn.cursor()
+                c.execute("INSERT INTO projects (team_name, members, project_title) VALUES (?, ?, ?)",
+                          (team_name, members, project_title))
+                project_id = c.lastrowid
 
-        folder = f'uploads/project_{project_id}'
-        os.makedirs(folder, exist_ok=True)
+                folder = f'uploads/project_{project_id}'
+                os.makedirs(folder, exist_ok=True)
 
-        for file in files:
-            if file.filename:
-                filepath = os.path.join(folder, file.filename)
-                file.save(filepath)
-                c.execute("INSERT INTO files (project_id, file_name, file_path) VALUES (?, ?, ?)",
-                          (project_id, file.filename, filepath))
+                for file in files:
+                    if file.filename:
+                        filepath = os.path.join(folder, file.filename)
+                        file.save(filepath)
+                        c.execute("INSERT INTO files (project_id, file_name, file_path) VALUES (?, ?, ?)",
+                                  (project_id, file.filename, filepath))
 
-        conn.commit()
-        conn.close()
-        success = True
+                conn.commit()
+                conn.close()
+                success = True
+        except Exception as e:
+            error = f"حدث خطأ: {str(e)}"
 
-    return render_template_string(STUDENT_PAGE, success=success)
+    return render_template_string(STUDENT_PAGE, success=success, error=error)
 
 
 @app.route('/admin/login', methods=['GET', 'POST'])
