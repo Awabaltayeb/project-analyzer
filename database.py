@@ -29,7 +29,7 @@ def setup_db():
 
     # إضافة دكتور افتراضي
     c.execute("INSERT OR IGNORE INTO admin (username, password) VALUES (?, ?)",
-              ('admin', 'admin123'))
+          ('college', 'college2026'))
 
     conn.commit()
     conn.close()
