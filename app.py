@@ -342,7 +342,20 @@ def admin_report(project_id):
 def admin_logout():
     session.pop('admin_logged_in', None)
     return redirect('/')
-
+@app.route('/reset-db')
+def reset_db():
+    """حذف قاعدة البيانات وإعادة إنشائها"""
+    try:
+        os.remove('projects.db')
+        setup_db()
+        # حذف مجلد uploads أيضًا
+        import shutil
+        if os.path.exists('uploads'):
+            shutil.rmtree('uploads')
+        os.makedirs('uploads', exist_ok=True)
+        return "✅ تم حذف قاعدة البيانات ومجلد uploads بنجاح! يمكنك الآن إغلاق هذه الصفحة."
+    except Exception as e:
+        return f"❌ خطأ: {str(e)}"
 
 # ========== تشغيل ==========
 if __name__ == '__main__':
